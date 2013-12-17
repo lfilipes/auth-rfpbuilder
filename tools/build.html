@@ -1,0 +1,150 @@
+<html>
+	<head>
+		<title>RFP Builder - Basic Parameters</title>
+		<script type="text/javascript" src="/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/js/rfpbuilder.js"></script>
+		<link rel="stylesheet" href="/style/style.css" type="text/css" media="print, projection, screen" />
+		<script type="text/javascript">
+		
+function changeFilter(select) {
+	if (select.id == 'filter_device_type') {
+		populateDevices(document.getElementById('devices'),select.value);
+		setDTCookie(select.value);
+	}
+}
+
+function populateDevices(select, dv_type) {
+	$.getJSON('/get/device?device_type='+dv_type, function(devices) {
+		select.options.length = 0;
+		for (i=0,len=devices.length;i<len;i++) {
+			opt = new Option(devices[i].vendor + " " + devices[i].model, devices[i].key);
+			select.options[i] = opt;
+    	}
+	});
+}
+
+function transferDevices(select_from, select_to) {
+	sel_size = select_from.options.length;
+	for (i=sel_size-1; i>=0; i--) {
+		opt = select_from.options[i];
+		if (opt.selected) {
+			select_to.options.add(opt);
+		}
+	}
+}
+
+function removeDevices(select_from) {
+	select_to = document.getElementById('devices');
+	sel_size = select_from.options.length;
+	for (i=sel_size-1; i>=0; i--) {
+		opt = select_from.options[i];
+		if (opt.selected) {
+			select_to.options.add(opt);
+		}
+	}
+}
+
+function compare() {
+	dev_include = document.getElementById("included");
+	dev_exclude = document.getElementById("excluded");
+	inc_len = dev_include.options.length;
+	if (inc_len < 2) {
+		return;
+	}
+	var params = "include=" + dev_include.options[0].value;
+	for (i=1; i<inc_len; i++) {
+		params = params + "&include=" + dev_include.options[i].value;
+	}
+	for (i=0; i<dev_exclude.options.length; i++) {
+		params = params + "&exclude=" + dev_exclude.options[i].value;
+	}
+	$.getJSON('/compare?'+params, function(result) {
+		var html = "";
+		for (i=0; i<result.include.length; i++) {
+			html = html + result.include[i] + "<br>";
+		}
+		$('div.inc_features').html(html);
+
+		var html = "";
+		for (i=0; i<result.exclude.length; i++) {
+			html = html + result.exclude[i] + "<br>";
+		}
+		$('div.exc_features').html(html);
+	});
+}
+
+function getRFP(language) {
+	dev_include = document.getElementById("included");
+	inc_len = dev_include.options.length;
+	if (inc_len < 2) {
+		return;
+	}
+	var url = "/rfp?include=" + dev_include.options[0].value;
+	for (i=1; i<inc_len; i++) {
+		url = url + "&include=" + dev_include.options[i].value;
+	}
+	url = url + "&lang=" + language;
+	window.location.href = url;
+}
+
+$(document).ready(function() {
+	loadDeviceTypes();
+	optDeviceTypes(document.getElementById('filter_device_type'));
+	getDTCookie();
+});
+		</script>
+	</head>
+	<body>
+		<div class='page_header'>
+			<div style="float:left; margin:0px 20px 0px 20px;">
+			Filters: 
+			Device Type <select id='filter_device_type' onchange="changeFilter(this);"></select>
+			</div>
+			<div style="float:right; margin:0px 20px 0px 20px;">
+			<a href="/admin">Basic Parameters</a>&nbsp;&nbsp;&nbsp;
+            <a href="/matrix">Feature Matrix</a>&nbsp;&nbsp;&nbsp;
+            <a href="/build">Build RFP</a>&nbsp;&nbsp;&nbsp;
+            <a href="/logout">logout</a><br>
+            </div>
+		</div>
+		<br><br>
+		<div class="query">
+			<div>
+				Devices to <b>INCLUDE</b> in the RFP:<br>
+				<select id='included' multiple size="5" class="dev_select"></select>
+				<input type="button" value="Remove" onclick="removeDevices(document.getElementById('included'));compare();">
+				<hr>
+			</div>
+			<div>
+				<div style="float:left;">
+					Available Devices:<br>
+					<select id="devices" multiple size="10" class="dev_select"></select>
+				</div>
+				<div style="float:left;">
+					<input type="button" value="Include" onclick="transferDevices(document.getElementById('devices'), document.getElementById('included'));compare();"><br>
+					<input type="button" value="Exclude" onclick="transferDevices(document.getElementById('devices'), document.getElementById('excluded'));compare();">
+				</div>
+			</div><br>
+			<div style="clear:both; ">
+				<hr>
+				Devices to <b>EXCLUDE</b> from RFP:<br>
+				<select id='excluded' multiple size="5" class="dev_select"></select>
+				<input type="button" value="Remove" onclick="removeDevices(document.getElementById('excluded'));compare();">
+			</div><br><br>
+		</div>
+		<div class="results">
+			Include:<br>
+			<div class='inc_features'></div>
+			<hr>
+			Exclude:<br>
+			<div class='exc_features'></div>
+			<br><br><br><br><hr>
+			<select id="rfp_language">
+				<option value="eng" selected>English</option>
+				<option value="spa">Spanish</option>
+				<option value="por">Portuguese</option>
+			</select>
+			<input type="button" value="Get final RFP text" onclick="getRFP($('#rfp_language').val());">
+		</div>
+	</body>
+</html>

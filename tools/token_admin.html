@@ -1,0 +1,25 @@
+<html>
+	<head>
+		<script type="text/javascript" src="/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/js/token.js"></script>
+		<script type="text/javascript">
+			var showDeviceTypes = false;
+			var showFeatureCategories = false;
+			var showDevices = false;
+			var showFeatures = false;
+		</script>
+	</head>
+	<body onload="showTokens();showSessions();">
+		<b>Tokens</b><br>
+		<hr>
+		Token*: <input type="text" id="token">
+		User*: <input type="text" id="user">
+		e-mail*: <input type="text" id="email">
+		<input type="button" value="Add" onclick="addToken();">
+		<br><hr>
+		<table id='tb_token' border="1"><thead id="tk_thead"></thead><tbody id="tk_tbody"></tbody></table>
+		<br><hr><br>
+		<b>Sessions</b><br><br>
+		<table id='tb_sess' border="1"><thead id="sess_thead"></thead><tbody id="sess_tbody"></tbody></table>
+	</body>
+</html>

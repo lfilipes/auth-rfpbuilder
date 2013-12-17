@@ -1,0 +1,154 @@
+<html>
+	<head>
+		<title>RFP Builder - Feature Matrix</title>
+		<script type="text/javascript" src="/js/jquery.min.js"></script>	
+		<script type="text/javascript" src="/js/jquery.tablesorter.min.js"></script>
+		<script type="text/javascript" src="/js/rfpbuilder.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				loadDeviceTypes();
+				optDeviceTypes(document.getElementById('filter_device_type'));
+				optDeviceTypes(document.getElementById('dev_device_type'));
+				optDeviceTypes(document.getElementById('feat_device_type'));
+				getDTCookie();
+			});
+
+			function changeFilter(select) {
+				if (select.id == 'filter_device_type') {
+					setDTCookie(select.value);
+					loadFeatureCategories();
+					optDeviceTypes(document.getElementById('feat_device_type'),select.value)
+					optDeviceTypes(document.getElementById('dev_device_type'),select.value)
+					optFeatureCategories(document.getElementById('filter_feature_category'));
+					optFeatureCategories(document.getElementById('feat_category'));
+				}
+				if (select.id == 'filter_feature_category') {
+					optFeatureCategories(document.getElementById('feat_category'), select.value);
+				}
+				updateMatrix();
+			}
+
+function updateDeviceFeatures(element) {
+	if (element.checked) {
+		params = "device=" + element.name + "&feature=" + element.value + "&support=true";
+		post_to_url('/add/device_feature', params);
+	}
+	else {
+		params = "device=" + element.name + "&feature=" + element.value + "&support=false";
+		post_to_url('/add/device_feature', params);
+	}
+}
+
+function updateMatrix() {
+	$('#tbMatrix thead').empty();
+	$('#tbMatrix tbody').empty();
+	var dev_type = $('#filter_device_type').val();  
+	var fc = $('#filter_feature_category').val();  
+	if (dev_type != '') {
+		$("#tbMatrix thead")
+		.append($('<tr>')
+			.append($('<th>')
+				.append('Category')
+			).append($('<th>')
+				.append('Feature')
+			)
+		);
+		url = '/get/feature?device_type=' + dev_type;
+		if (fc != '') url += '&feature_category=' + fc;
+		$.getJSON(url, function(feats) { // Add features row to matrix
+			for (i=0,len_feat=feats.length;i<len_feat;i++) {
+				$("#tbMatrix tbody")
+				.append($('<tr>')
+					.append($('<td>')
+						.append(feats[i].category_name)
+					)
+					.append($('<td>')
+	    				.append(feats[i].name)
+	    			)
+				);
+			}
+			$.ajax({
+				url: '/get/device?device_type=' + dev_type,
+				dataType: 'json',
+				async: false
+			}).done(function(devs) {
+	    		for (i=0,len_dev=devs.length;i<len_dev;i++) {
+	    			$("#tbMatrix thead > tr") // Add device vendor and model to table header
+    				.append($('<th>')
+	    				.append(devs[i].vendor + "<br>" + devs[i].model)
+	    			);
+	    			$.ajax({ 
+	    				url: '/get/device_features?device=' + devs[i].key,
+	    				dataType: 'json',
+	    				async: false
+		  			}).done(function(dev_features) {
+	    				for (j=0,len_feat=feats.length;j<len_feat;j++) {
+	    					$('#tbMatrix tbody tr').eq(j)
+	    					.append($('<td>')
+	    						.css('text-align', 'center')
+    							.append($('<input>')
+    								.attr({
+    								type: 'checkbox',
+							    	name: devs[i].key,
+			                    	value: feats[j].key,
+			                    	checked: dev_features.features[feats[j].key].supported
+									})
+									.click(function() { updateDeviceFeatures(this); })
+								)
+							);
+						}
+	    			});
+	    		}
+	    		$('#tbMatrix').tablesorter();
+		    });
+		});
+	}
+}
+
+
+		</script>
+		<link rel="stylesheet" href="/style/style.css" type="text/css" media="print, projection, screen" />
+	</head>
+	<body>
+		<div class='page_header'>
+			<div style="float:left; margin:0px 20px 0px 20px;">
+			Filters: 
+			Device Type <select id='filter_device_type' onchange="changeFilter(this);"></select>
+			Feature Category <select id='filter_feature_category' onchange="changeFilter(this);"></select>
+			</div>
+			<div style="float:right; margin:0px 20px 0px 20px;">
+			<a href="/admin">Basic Parameters</a>&nbsp;&nbsp;&nbsp;
+            <a href="/matrix">Feature Matrix</a>&nbsp;&nbsp;&nbsp;
+            <a href="/build">Build RFP</a>&nbsp;&nbsp;&nbsp;
+            <a href="/logout">logout</a><br>
+            </div>
+		</div>
+		<br><br>
+<div class="div_features">
+		<b>Add Feature:</b><br>
+		Name*: <input type='text' id="feat_name">
+		<input type="hidden" id="feat_key" value="">
+		Device Type*: <select id="feat_device_type" onchange="optFeatureCategories(document.getElementById('feat_category'),this.value);"></select>
+		Category*: <select id="feat_category"></select>
+		Descr Eng: <input type='text' id="desc_eng">
+		Descr Spa: <input type='text' id="desc_spa">
+		Descr Por: <input type='text' id="desc_por">
+		<input type="button" value="Add" onclick="addFeature();updateMatrix()">
+		<div id='feat_status' style='color: red'></div>
+</div>
+<div class="div_devices">
+		<b>Add Device:</b><br>
+		Vendor*: <input type='text' id="dev_vendor">
+		Model*: <input type='text' id="dev_model">
+		<input type="hidden" id="dev_key" value="">
+		Device Type*: <select id="dev_device_type"></select>
+		Description: <input type='text' id="dev_desc">
+		<input type="button" value="Add" onclick="addDevice();updateMatrix();">
+		<div id='dev_status' style='color: red'></div>
+</div>
+<div class="div_matrix">
+		<input type="button" value="Reload Matrix" onclick="updateMatrix();">
+		<table id="tbMatrix" class="tablesorter"><thead></thead><tbody></tbody></table>
+</div>
+	</body>
+</html>

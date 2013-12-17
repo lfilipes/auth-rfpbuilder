@@ -1,0 +1,54 @@
+application: rfpbuilder-auth
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /signup
+  script: rfpbuilder-auth.app
+  secure: always
+
+- url: /login
+  script: rfpbuilder-auth.app
+  secure: always
+
+- url: /forgot
+  script: rfpbuilder-auth.app
+  secure: always
+
+- url: /static
+  static_dir: static
+
+- url: /js
+  static_dir: js
+- url: /style
+  static_dir: style
+  
+- url: /add/token
+  script: add.app
+  login: admin
+- url: /add/.*
+  script: add.app
+  
+- url: /get/token
+  script: get.app
+  login: admin
+- url: /get/.*
+  script: get.app
+  
+- url: /compare
+  script: compare.app
+- url: /rfp
+  script: compare.app
+  
+- url: /tokenadmin
+  script: rfpbuilder-auth.app
+  login: admin  
+  
+- url: .*
+  script: rfpbuilder-auth.app
+
+libraries:
+- name: webapp2
+  version: "2.5.1"

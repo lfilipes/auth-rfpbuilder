@@ -1,0 +1,149 @@
+<html>
+	<head>
+		<title>RFP Builder - Basic Parameters</title>
+		<script type="text/javascript" src="/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/js/jquery.tablesorter.min.js"></script>
+		<script type="text/javascript" src="/js/rfpbuilder.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function() {
+				loadDeviceTypes();
+				updateTbDeviceTypes();
+				optDeviceTypes(document.getElementById('fc_device_type'))
+				optDeviceTypes(document.getElementById('dev_device_type'))
+				optDeviceTypes(document.getElementById('feat_device_type'))
+				$('#tbDeviceTypes').tablesorter();
+				$('#tbFeatureCategories').tablesorter();
+				$('#tbFeatures').tablesorter();
+				$('#tbDevices').tablesorter();
+				optDeviceTypes(document.getElementById('filter_device_type'));
+				getDTCookie();
+			});
+
+			function changeFilter(select) {
+				if (select.id == 'filter_device_type') {
+					setDTCookie(select.value);
+					loadFeatureCategories();
+					updateTbFeatureCategories();
+					loadDevices();
+					updateTbDevices();
+					optDeviceTypes(document.getElementById('fc_device_type'),select.value)
+					optDeviceTypes(document.getElementById('feat_device_type'),select.value)
+					optDeviceTypes(document.getElementById('dev_device_type'),select.value)
+					optFeatureCategories(document.getElementById('filter_feature_category'));
+					optFeatureCategories(document.getElementById('feat_category'));
+				}
+				if (select.id == 'filter_feature_category') {
+					optFeatureCategories(document.getElementById('feat_category'), select.value);
+				}
+				loadFeatures();
+				updateTbFeatures();
+			}
+
+		</script>
+		<link rel="stylesheet" href="/style/style.css" type="text/css" media="print, projection, screen" />
+	</head>
+	<body>
+		<div class='page_header'>
+			<div style="float:left; margin:0px 20px 0px 20px;">
+			Filters: 
+			Device Type <select id='filter_device_type' onchange="changeFilter(this);"></select>
+			Feature Category <select id='filter_feature_category' onchange="changeFilter(this);"></select>
+			</div>
+			<div style="float:right; margin:0px 20px 0px 20px;">
+			<a href="/admin">Basic Parameters</a>&nbsp;&nbsp;&nbsp;
+            <a href="/matrix">Feature Matrix</a>&nbsp;&nbsp;&nbsp;
+            <a href="/build">Build RFP</a>&nbsp;&nbsp;&nbsp;
+            <a href="/logout">logout</a><br>
+            </div>
+		</div>
+		<br><br>
+<div class="div_dev_types" style="background-color: #C4F2C8;">
+		Device Types:
+		<input type="button" value="Show/Hide" onclick="$('#div_device_types').toggle();"><br>
+		<div id="div_device_types" style="display: none">
+			<table id='tbDeviceTypes' class="tablesorter">
+				<thead><tr><th>Device Type</th><th>Edit</th></tr></thead>
+				<tbody></tbody>
+			</table>
+		</div>
+		Name*: <input type="text" id="device_type">
+		<input type="hidden" id="device_type_key" value="">
+		<input type="button" value="Add/Update" onclick="addDeviceType();updateTbDeviceTypes();optDeviceTypes(document.getElementById('filter_device_type'));">
+		<div id='dt_status' style='color: red'></div>
+</div>
+<div class="div_feature_categories">
+		Feature Categories:
+		<input type="button" value="Show/Hide" onclick="$('#div_feature_categories').toggle();"><br>
+		<div id="div_feature_categories" style="display: none">
+			<table id='tbFeatureCategories' class="tablesorter">
+				<thead>
+					<tr><th>Device Type</th>
+					<th>Category Name English</th>
+					<th>Category Name Spanish</th>
+					<th>Category Name Portuguese</th>
+					<th>Edit</th></tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
+		Description English*: <input type='text' id="fc_name_eng">
+		<input type="hidden" id="fc_key" value="">
+		Device Type*: <select id="fc_device_type"></select>
+		Description Spanish: <input type='text' id="fc_name_spa">
+		Description Portuguese: <input type='text' id="fc_name_por">
+		<input type="button" value="Add/Update" onclick="addFeatureCategory();updateTbFeatureCategories();optFeatureCategories(document.getElementById('filter_feature_category'));">
+		<div id='fc_status' style='color: red'></div>
+</div>
+<div class="div_features">
+		Features:
+		<input type="button" value="Show/Hide" onclick="$('#div_features').toggle();"><br>
+		<div id="div_features" style="display: none">
+			<table id='tbFeatures' class="tablesorter">
+				<thead>
+					<tr><th>Category</th>
+					<th>Feature Name</th>
+					<th>Description English</th>
+					<th>Description Spanish</th>
+					<th>Description Portuguese</th>
+					<th>Edit</th></tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+		Name*: <input type='text' id="feat_name">
+		<input type="hidden" id="feat_key" value="">
+		Device Type*: <select id="feat_device_type" onchange="optFeatureCategories(document.getElementById('feat_category'),this.value);"></select>
+		Category*: <select id="feat_category"></select><br>
+		<div class="desc">Descr Eng:<br><textarea class="desc" id="desc_eng"></textarea></div>
+		<div class="desc">Descr Spa:<br><textarea class="desc" id="desc_spa"></textarea></div>
+		<div class="desc">Descr Por:<br><textarea class="desc" id="desc_por"></textarea></div>
+		<input type="button" value="Add/Update" onclick="addFeature();updateTbFeatures();">
+		<div id='feat_status' style='color: red'></div>
+</div>
+<div class="div_devices">
+		Devices:
+		<input type="button" value="Show/Hide" onclick="$('#div_devices').toggle();"><br>
+		<div id="div_devices" style="display: none">
+			<table id='tbDevices' class="tablesorter">
+				<thead>
+					<tr><th>Device Type</th>
+					<th>Vendor</th>
+					<th>Model</th>
+					<th>Description</th>
+					<th>Edit</th></tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+		Vendor*: <input type='text' id="dev_vendor">
+		Model*: <input type='text' id="dev_model">
+		<input type="hidden" id="dev_key" value="">
+		Device Type*: <select id="dev_device_type"></select>
+		Description: <input type='text' id="dev_desc">
+		<input type="button" value="Add" onclick="addDevice();updateTbDevices();">
+		<div id='dev_status' style='color: red'></div>
+</div>
+		<br>
+	</body>
+</html>
